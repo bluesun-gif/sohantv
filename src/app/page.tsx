@@ -536,7 +536,7 @@ export default function Home() {
   // Fetch live channels from API on mount
   useEffect(() => {
     setLoadState("fetching");
-    fetch("/channels.json")
+    fetch("/api/channels")
       .then(r => r.json())
       .then(data => {
         if (data.channels && Array.isArray(data.channels)) {
