@@ -1,0 +1,18 @@
+{
+  "name": "Sohan Live TV 📺",
+  "short_name": "Sohan TV",
+  "description": "Watch 1000+ free live TV channels worldwide. FIFA World Cup 2026 live streaming.",
+  "start_url": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#060610",
+  "theme_color": "#7c3aed",
+  "categories": ["entertainment", "sports", "news"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

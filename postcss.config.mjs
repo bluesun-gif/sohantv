@@ -1,7 +1,6 @@
+// PostCSS config - Tailwind disabled to use pure inline styles
 const config = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-  },
+  plugins: {},
 };
 
 export default config;
