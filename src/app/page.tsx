@@ -536,7 +536,7 @@ export default function Home() {
   // Fetch live channels from API on mount
   useEffect(() => {
     setLoadState("fetching");
-    fetch("/api/channels")
+    fetch("/channels.json")
       .then(r => r.json())
       .then(data => {
         if (data.channels && Array.isArray(data.channels)) {
@@ -1244,131 +1244,47 @@ export default function Home() {
             {tab === "channels" && (
               <div className="fade-in" style={{paddingBottom:40}}>
                 
-                {/* HERO BANNER */}
-                {channelSubTab === "all" && !search && (
-                  <div style={{marginBottom: 24, position: "relative", borderRadius: 16, overflow: "hidden", background: "linear-gradient(135deg, #0c0c20 0%, #161630 100%)", border: "1px solid var(--accent)", boxShadow: "0 8px 24px var(--accent-glow)", padding: 20}}>
-                    <div style={{position: "absolute", top: -20, right: -20, width: 120, height: 120, background: "var(--neon-green)", filter: "blur(50px)", opacity: 0.3, borderRadius: "50%"}}/>
-                    <div style={{position: "absolute", bottom: -20, left: -20, width: 100, height: 100, background: "var(--accent)", filter: "blur(40px)", opacity: 0.3, borderRadius: "50%"}}/>
-                    <span style={{background: "var(--neon-green)", color: "#000", fontSize: 9, fontWeight: 900, padding: "3px 8px", borderRadius: 8, textTransform: "uppercase"}}>Live Now</span>
-                    <h2 style={{fontSize: 22, fontWeight: 900, color: "#fff", marginTop: 8, lineHeight: 1.2}}>FIFA World Cup<br/>Live: France vs Iraq</h2>
-                    <p style={{fontSize: 11, color: "var(--muted)", marginTop: 4, marginBottom: 16, maxWidth: "70%"}}>Stream the match live in HD on Soccerball S1.</p>
-                    <div style={{display: "flex", gap: 8}}>
-                      <button onClick={() => playChannel(allChannels.find(c => c.id === "soccerball_s1")!)} style={{background: "var(--accent)", color: "#fff", border: "none", padding: "8px 16px", borderRadius: 12, fontSize: 11, fontWeight: 800, boxShadow: "0 4px 12px var(--accent-glow)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6}}>
-                        <span style={{fontSize:14}}>▶️</span> Watch Live
-                      </button>
-                      <button onClick={() => setChannelSubTab("worldcup")} style={{background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid var(--border)", padding: "8px 16px", borderRadius: 12, fontSize: 11, fontWeight: 800, cursor: "pointer"}}>More Streams</button>
-                    </div>
+                {/* Horizontal Category Chips */}
+                <div className="horizontal-scroll-container hide-scrollbar" style={{marginBottom: 16, gap: 8, paddingBottom: 4, marginLeft: -16, marginRight: -16, paddingLeft: 16, paddingRight: 16}}>
+                  <button className={`subtab-chip${channelSubTab==="all"?" active":""}`} onClick={() => setChannelSubTab("all")}>🌍 All Channels</button>
+                  <button className={`subtab-chip${channelSubTab==="worldcup"?" active":""}`} onClick={() => setChannelSubTab("worldcup")}>🏆 World Cup</button>
+                  <button className={`subtab-chip${channelSubTab==="sports"?" active":""}`} onClick={() => setChannelSubTab("sports")}>⚽ Sports</button>
+                  {Object.keys(groupedChannels).filter(c => c !== "World" && c !== "Unknown").map(country => (
+                    <button key={country} className={`subtab-chip${channelSubTab===country.toLowerCase()?" active":""}`} onClick={() => setChannelSubTab(country.toLowerCase())}>{FLAGS[country] || "🌐"} {country}</button>
+                  ))}
+                </div>
+
+                {/* Vertical Massive List */}
+                <div style={{paddingBottom: 20}}>
+                  <div style={{padding:"12px 14px 12px",fontSize:10,fontWeight:900,color:"var(--muted)",textTransform:"uppercase",letterSpacing:0.5, borderBottom:"1px solid var(--border)"}}>
+                    {filteredChannels.length} Channels Available
                   </div>
-                )}
-
-                {/* Recently Watched Slider */}
-                {watchHistory.length > 0 && channelSubTab === "all" && !search && (
-                  <div style={{marginBottom:24}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10,paddingLeft:2}}>
-                      <span style={{fontSize:14}}>⏳</span>
-                      <span style={{fontWeight:900,fontSize:13,color:"#fff",textTransform:"uppercase",letterSpacing:0.5}}>Recently Watched</span>
-                    </div>
-                    <div className="horizontal-scroll-container hide-scrollbar" style={{marginLeft:-16,marginRight:-16}}>
-                      {watchHistory.map(id => {
-                        const ch = allChannels.find(c => c.id === id);
-                        if (!ch) return null;
-                        return (
-                          <button key={ch.id} className="channel-card-new" onClick={() => playChannel(ch)}
-                            style={{
-                              borderColor: cur?.id===ch.id ? "var(--accent)" : "var(--border)",
-                              boxShadow: cur?.id===ch.id ? "0 0 10px rgba(124,58,237,0.2)" : "none"
-                            }}>
-                            <div style={{background:"rgba(0,0,0,0.3)", height: 60, display:"flex", alignItems:"center", justifyContent:"center", borderBottom:"1px solid var(--border)", position:"relative"}}>
-                              <ChannelLogo channel={ch} size={32} />
-                            </div>
-                            <div style={{padding:"6px 10px", textAlign:"left"}}>
-                              <div style={{fontSize:10,fontWeight:800,color:"#fff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{ch.name}</div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* CATEGORIZED SLIDERS */}
-                {Object.entries(groupedChannels).map(([country, chs]) => {
-                  // If searching or in a specific sub-tab, show as a grid. Otherwise, show horizontal slider.
-                  if (search || channelSubTab !== "all") {
-                    return (
-                      <div key={country} style={{marginBottom:24}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10,paddingLeft:2}}>
-                          <span style={{fontSize:16}}>{FLAGS[country] || "🌐"}</span>
-                          <span style={{fontWeight:900,fontSize:11,color:"var(--muted)",textTransform:"uppercase",letterSpacing:1}}>{country}</span>
-                          <span style={{fontSize:9,color:"var(--border)",fontWeight:800,background:"rgba(255,255,255,0.03)",padding:"2px 6px",borderRadius:10}}>{chs.length}</span>
-                        </div>
-                        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(88px, 1fr))",gap:8}}>
-                          {chs.map(ch => (
-                            <button key={ch.id} onClick={() => playChannel(ch)}
-                              style={{
-                                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                                gap:6, padding:"12px 6px", borderRadius:14,
-                                border:`1.5px solid ${cur?.id===ch.id?(ch.isWorldCup?"var(--gold)":"var(--accent)"):"var(--border)"}`,
-                                background:cur?.id===ch.id?(ch.isWorldCup?"rgba(245,158,11,0.08)":"rgba(124,58,237,0.12)"):"var(--surface)",
-                                cursor:"pointer",
-                                boxShadow:cur?.id===ch.id?(ch.isWorldCup?"0 0 10px rgba(245,158,11,0.15)":"0 0 10px rgba(124,58,237,0.15)"):"none"
-                              }}>
-                              <div style={{height:28,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                <ChannelLogo channel={ch} size={28} />
-                              </div>
-                              <span style={{fontSize:10,fontWeight:800,lineHeight:1.3,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",color:"#fff"}}>{ch.name}</span>
-                              {ch.quality && <span style={{fontSize:8,color:"var(--muted)",fontWeight:800}}>{ch.quality}</span>}
-                              {ch.isWorldCup && <span style={{fontSize:8,color:"var(--gold)",fontWeight:900}}>🏆 WC</span>}
-                            </button>
-                          ))}
-                        </div>
+                  {filteredChannels.map(ch => (
+                    <button key={ch.id} onClick={() => playChannel(ch)}
+                      style={{
+                        width:"100%",border:"none",textAlign:"left",color:"var(--text)",display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderBottom:"1px solid var(--border)", cursor:"pointer",
+                        background: cur?.id === ch.id ? "rgba(124,58,237,0.15)" : "transparent"
+                      }}>
+                      <div style={{width:40,height:40,background:"rgba(255,255,255,0.05)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}>
+                        {ch.logo ? <img src={ch.logo} style={{width:"100%",height:"100%",objectFit:"contain"}}/> : <span style={{fontSize:20}}>{ch.flag || "📺"}</span>}
                       </div>
-                    );
-                  }
-
-                  // Horizontal Slider
-                  return (
-                    <div key={country} style={{marginBottom: 20}}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,paddingLeft:2}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6}}>
-                          <span style={{fontSize:16}}>{FLAGS[country] || "🌐"}</span>
-                          <span style={{fontWeight:900,fontSize:13,color:"#fff",textTransform:"uppercase",letterSpacing:0.5}}>{country}</span>
-                        </div>
-                        <button onClick={() => setChannelSubTab(country.toLowerCase())} style={{background:"none",border:"none",color:"var(--accent)",fontSize:10,fontWeight:800,cursor:"pointer"}}>See All</button>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontWeight:800,fontSize:14,color:cur?.id === ch.id ? "var(--neon-green)" : "#fff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{ch.name}</div>
+                        <div style={{fontSize:10,color:"var(--muted)",marginTop:2}}>{ch.country} • {ch.region}</div>
                       </div>
-                      
-                      <div className="horizontal-scroll-container hide-scrollbar" style={{marginLeft:-16,marginRight:-16}}>
-                        {chs.map(ch => (
-                          <button key={ch.id} className="channel-card-new" onClick={() => playChannel(ch)}
-                            style={{
-                              borderColor: cur?.id===ch.id ? (ch.isWorldCup?"var(--gold)":"var(--accent)") : "var(--border)",
-                              boxShadow: cur?.id===ch.id ? (ch.isWorldCup?"0 0 10px rgba(245,158,11,0.2)":"0 0 10px rgba(124,58,237,0.2)") : "none"
-                            }}>
-                            <div style={{background:"rgba(0,0,0,0.3)", height: 80, display:"flex", alignItems:"center", justifyContent:"center", borderBottom:"1px solid var(--border)", position:"relative"}}>
-                              {ch.isWorldCup && <div style={{position:"absolute", top:6, right:6, background:"var(--gold)", color:"#000", fontSize:8, fontWeight:900, padding:"2px 6px", borderRadius:4}}>WC</div>}
-                              <ChannelLogo channel={ch} size={40} />
-                            </div>
-                            <div style={{padding:"8px 10px", textAlign:"left"}}>
-                              <div style={{fontSize:11,fontWeight:800,color:"#fff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{ch.name}</div>
-                              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:4}}>
-                                <span style={{fontSize:9,color:"var(--muted)",fontWeight:700}}>{ch.quality || "AUTO"}</span>
-                                <span style={{fontSize:8,color:"var(--neon-green)",fontWeight:900,display:"flex",alignItems:"center",gap:3}}>
-                                  <span style={{display:"inline-block",width:4,height:4,borderRadius:"50%",background:"var(--neon-green)"}}></span> LIVE
-                                </span>
-                              </div>
-                            </div>
-                          </button>
-                        ))}
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4,flexShrink:0}}>
+                        {ch.quality && <span style={{fontSize:9,color:"var(--neon-green)",fontWeight:800,border:"1px solid var(--neon-green)",padding:"1px 4px",borderRadius:4}}>{ch.quality}</span>}
+                        {ch.isWorldCup && <span style={{fontSize:9,color:"var(--gold)",fontWeight:900}}>🏆 WC</span>}
                       </div>
-                    </div>
-                  );
-                })}
+                    </button>
+                  ))}
+                </div>
 
                 {filteredChannels.length === 0 && (
                   <div style={{textAlign:"center",padding:"60px 20px",color:"var(--muted)"}}>
                     <span style={{fontSize:32}}>📺</span>
                     <div style={{fontWeight:800,marginTop:8,color:"#fff"}}>No Channels Found</div>
-                    <div style={{fontSize:11,marginTop:4}}>Try another sub-category or search filter.</div>
+                    <div style={{fontSize:11,marginTop:4}}>Try another category or search filter.</div>
                   </div>
                 )}
               </div>
